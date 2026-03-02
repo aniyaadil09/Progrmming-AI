@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Face Profiling</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; background-color: #f5f5f5; }
+        h1 { color: #333; }
+        #result { margin-top: 20px; }
+        img { max-width: 400px; border-radius: 10px; border: 2px solid #555; }
+        button { padding: 10px 20px; font-size: 1em; cursor: pointer; margin-top: 10px; }
+        input[type="file"] { margin-top: 20px; }
+        #profile { font-size: 1.2em; color: darkblue; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Face Profiling App</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <br>
+    <button onclick="uploadImage()">Upload & Detect</button>
+
+    <div id="result">
+        <p id="profile"></p>
+        <img id="resultImage" src="" alt="" style="display:none;">
+    </div>
+
+    <script>
+        async function uploadImage() {
+            const input = document.getElementById('imageInput');
+            if (input.files.length === 0) {
+                alert("Please select an image!");
+                return;
+            }
+
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append("image", file);
+
+            document.getElementById('profile').innerHTML = "Detecting...";
+            document.getElementById('resultImage').style.display = "none";
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('profile').innerHTML = data.error;
+                    return;
+                }
+
+                document.getElementById('profile').innerHTML = data.profile;
+                const img = document.getElementById('resultImage');
+                img.src = data.image + "?t=" + new Date().getTime(); // prevent caching
+                img.style.display = "block";
+            } catch (err) {
+                document.getElementById('profile').innerHTML = "Error detecting face.";
+            }
+        }
+    </script>
+</body>
+</html>
